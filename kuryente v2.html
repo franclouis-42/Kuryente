@@ -1,0 +1,339 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Energy Calculator</title>
+        <style>
+            /* Add some basic styling to make the form look decent */
+            body {
+                font-family: Arial, sans-serif;
+            }
+            form {
+                max-width: 400px;
+                margin: 40px auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            label {
+                display: block;
+                margin-bottom: 10px;
+            }
+            input, select {
+                width: 100%;
+                padding: 10px;
+                margin-bottom: 20px;
+                border: 1px solid #ccc;
+            }
+            button[type="submit"] {
+                background-color: #4CAF50;
+                color: #fff;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            button[type="submit"]:hover {
+                background-color: #3e8e41;
+            }
+            table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            }
+            th, td {
+                padding: 10px;
+                border: 1px solid #ccc;
+            }
+            th {
+                background-color: #f2f2f2;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <form id="energy-form">
+            <h2>Energy Calculator</h2>
+            <label for="target-budget">Target Budget (Php):</label>
+            <input type="number" id="target-budget" name="target-budget" required>
+
+            <label for="appliance">Select Appliance:</label>
+            <select id="appliance" name="appliance" required>
+                <option value="">Select an appliance</option>
+                <optgroup label="Lighting/Ventilation">
+                    <option value="Air Conditioning" data-wattage="3000">Air Conditioning</option>
+                    <option value="Electric Fan" data-wattage="3.6">Electric Fan</option>
+                    <option value="Light Bulb" data-wattage="4.5">Light Bulb</option>
+                </optgroup>
+                <optgroup label="Cleaning">
+                    <option value="Dishwasher" data-wattage="1200">Dishwasher</option>
+                    <option value="Iron:1100" data-wattage="1100">Iron</option>
+                    <option value="Washer" data-wattage="500">Washer</option>
+                    <option value="Dryer" data-wattage="1500">Dryer</option>
+                    <option value="Vacuum Cleaner" data-wattage="1000">Vacuum Cleaner</option>
+                </optgroup>
+                <optgroup label="Cooking">
+                    <option value="Induction Stove" data-wattage="1500">Induction Stove</option>
+                    <option value="Electric Stove" data-wattage="1000">Electric Stove</option>
+                    <option value="Kettle" data-wattage="1500">Kettle</option>
+                    <option value="Coffee Maker" data-wattage="1500">Coffee Maker</option>
+                    <option value="Heater" data-wattage="1500">Heater</option>
+                    <option value="Refrigerator" data-wattage="300">Refrigerator</option>
+                    <option value="Blender" data-wattage="500">Blender</option>
+                    <option value="Oven" data-wattage="900">Oven</option>
+                    <option value="Toaster" data-wattage="1100">Toaster</option>
+                    <option value="Microwave" data-wattage="600">Microwave</option>
+                </optgroup>
+                <optgroup label="Entertainment">
+                    <option value="Television" data-wattage="50">Television</option>
+                    <option value="Computer" data-wattage="30">Computer</option>
+                    <option value="Gadgets Chargers" data-wattage="51">Gadgets Chargers</option>
+                </optgroup>
+                <optgroup label="Others">
+                    <option>Other</option>
+                </optgroup>
+            </select>
+
+            <label for="wattage">Wattage (watts):</label>
+            <input type="float" id="wattage" name="wattage" required>
+
+            <label for="hours-used">Hours Used:</label>
+            <input type="float" id="hours-used" name="hours-used" required>
+
+            <button type="submit">Add Appliance</button>
+        </form>
+
+        <table id="appliance-table">
+            <thead>
+                <tr>
+                    <th>Appliance</th>
+                    <th>Wattage</th>
+                    <th>Hours Used</th>
+                    <th>Cost (Php)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button id="calculate-button">Calculate</button>
+        <div id="suggestion"></div>
+        <div id="result"></div>
+        <div id="total-result"></div>
+
+        <script>
+            const form = document.getElementById('energy-form');
+            const resultDiv = document.getElementById('result');
+            const applianceSelect = document.getElementById('appliance');
+            const wattageInput = document.getElementById('wattage');
+            const applianceTable = document.getElementById('appliance-table');
+            const applianceTableBody = applianceTable.getElementsByTagName('tbody')[0] || applianceTable.appendChild(document.createElement('tbody'));
+            const calculateButton = document.getElementById('calculate-button');
+            const suggestionDiv = document.getElementById('suggestion');
+            const targetBudget = document.getElementById('target-budget').value;
+            console.log(targetBudget);  
+
+            applianceSelect.addEventListener('change', (e) => {
+                const selectedAppliance = applianceSelect.value;
+                const wattage = applianceSelect.options[applianceSelect.selectedIndex].getAttribute('data-wattage');
+                wattageInput.value = wattage;
+            });
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                // const targetBudget = document.getElementById('target-budget').value;
+                const appliance = applianceSelect.value;
+                const wattage = wattageInput.value;
+                const hoursUsed = document.getElementById('hours-used').value;
+
+                // Calculate energy cost based on the inputs
+                const energyCost = calculateEnergyCost(wattage, hoursUsed);
+
+                // Display the result
+                // resultDiv.innerHTML = `Your ${appliance} uses ${energyCost.toFixed(2)} units of energy per day. Your target budget is ${targetBudget}.`;
+
+                // // Add some basic validation
+                // if (energyCost > targetBudget) {
+                //     resultDiv.style.color = 'red';
+                //     resultDiv.innerHTML += ` You are exceeding your target budget!`;
+                // } else {
+                //     resultDiv.style.color = 'green';
+                // }
+
+                // Add the appliance to the table
+                const newRow = applianceTableBody.insertRow();
+                const applianceCell = newRow.insertCell();
+                const wattageCell = newRow.insertCell();
+                const hoursUsedCell = newRow.insertCell();
+                const costCell = newRow.insertCell();
+                const actionsCell = newRow.insertCell();
+
+                applianceCell.innerHTML = appliance;
+                wattageCell.innerHTML = wattage;
+                hoursUsedCell.innerHTML = hoursUsed;
+                costCell.innerHTML = energyCost.toFixed(2);
+
+                const editButtons = createEditButtons(newRow);
+                actionsCell.appendChild(editButtons);
+
+                // Reset the form
+                // form.reset();
+                document.getElementById("hours-used").value = "";
+
+
+                // Focus on the target budget input
+                document.getElementById('target-budget').focus();
+            });
+
+            function calculateEnergyCost(wattage, hoursUsed) {
+                const energyCostPerHour = ((wattage * hoursUsed/1000)) * 11.9397; 
+                return energyCostPerHour;
+            }   
+
+            function createEditButtons(row) {
+                const editButtons = document.createElement('div');
+                editButtons.classList.add('edit-buttons');
+
+                const editButton = document.createElement('button');
+                editButton.innerHTML = 'Edit';
+                editButton.addEventListener('click', () => {
+                    row.setAttribute('data-editing', 'true');
+
+                    const applianceCell = row.cells[0];
+                    const applianceInput = document.createElement('input');
+                    applianceInput.type = 'text';
+                    applianceInput.value = applianceCell.innerHTML;
+                    applianceCell.innerHTML = '';
+                    applianceCell.appendChild(applianceInput);
+
+                    const wattageCell = row.cells[1];
+                    const wattageInput = document.createElement('input');
+                    wattageInput.type = 'number';
+                    wattageInput.value = wattageCell.innerHTML;
+                    wattageCell.innerHTML = '';
+                    wattageCell.appendChild(wattageInput);
+
+                    const hoursUsedCell = row.cells[2];
+                    const hoursUsedInput = document.createElement('input');
+                    hoursUsedInput.type = 'number';
+                    hoursUsedInput.value = hoursUsedCell.innerHTML;
+                    hoursUsedCell.innerHTML = '';
+                    hoursUsedCell.appendChild(hoursUsedInput);
+
+                    const costCell = row.cells[3];
+                    costCell.innerHTML = '';
+
+                    const saveButton = document.createElement('button');
+                    saveButton.innerHTML = 'Save';
+                    saveButton.addEventListener('click', () => {
+                        row.removeAttribute('data-editing');
+
+                        applianceCell.innerHTML = applianceInput.value;
+                        wattageCell.innerHTML = wattageInput.value;
+                        hoursUsedCell.innerHTML = hoursUsedInput.value;
+
+                        const newEnergyCost = calculateEnergyCost(wattageInput.value, hoursUsedInput.value);
+                        costCell.innerHTML = newEnergyCost.toFixed(2);
+
+                        editButtons.style.display = 'flex';
+                        saveButton.style.display = 'none';
+                    });
+
+                    const cancelButton = document.createElement('button');
+                    cancelButton.innerHTML = 'Cancel';
+                    cancelButton.addEventListener('click', () => {
+                        row.removeAttribute('data-editing');
+
+                        applianceCell.innerHTML = applianceInput.value;
+                        wattageCell.innerHTML = wattageInput.value;
+                        hoursUsedCell.innerHTML = hoursUsedInput.value;
+
+                        const newEnergyCost = calculateEnergyCost(wattageInput.value, hoursUsedInput.value);
+                        costCell.innerHTML = newEnergyCost.toFixed(2);
+
+                        editButtons.style.display = 'flex';
+                        saveButton.style.display = 'none';
+                    });
+
+                    editButtons.style.display = 'none';
+                    costCell.appendChild(saveButton);
+                    costCell.appendChild(cancelButton);
+                });
+
+                const deleteButton = document.createElement('button');
+                deleteButton.innerHTML = 'Delete';
+                deleteButton.classList.add('delete-button');
+                deleteButton.addEventListener('click', () => {
+                    applianceTableBody.removeChild(row);
+                });
+
+                editButtons.appendChild(editButton);
+                editButtons.appendChild(deleteButton);
+
+                return editButtons;
+            }
+
+            function addToTotal(energyCost) {
+            // Get the current total or set it to 0 if it doesn't exist
+            let total = parseFloat(totalResultDiv.getAttribute('data-total')) || 0;
+
+            // Add the new energy cost to the total
+            total += energyCost;
+
+            // Update the total result div
+            totalResultDiv.innerHTML = `Total Energy Cost: ${total.toFixed(2)}`;
+            totalResultDiv.setAttribute('data-total', total);
+        }
+
+        calculateButton.addEventListener('click', () => {
+                // const targetBudget = parseFloat(document.getElementById('target-budget').value);
+                // const totalCost = parseFloat(document.querySelector('#appliance-table tbody tr').lastElementChild.textContent);
+
+                // if (totalCost > targetBudget) {
+                //     suggestionDiv.textContent = `You are exceeding your target budget by ${(totalCost - targetBudget).toFixed(2)} Php. Consider reducing the usage of some appliances or upgrading to more energy-efficient models.`;
+                //     suggestionDiv.style.color = 'red';
+                // } else {
+                //     suggestionDiv.textContent = `You are within your target budget. Keep up the good work!`;
+                //     suggestionDiv.style.color = 'green';
+                // }
+                let totalCost = 0;
+                const rows = applianceTableBody.rows;
+                for (let i = 0; i < rows.length; i++) {
+                    const costCell = rows[i].cells[3];
+                    totalCost += parseFloat(costCell.innerHTML);
+                }
+                suggestionDiv.innerHTML = `Total Energy Cost: ${totalCost.toFixed(2)}`;
+                var targetBudget = parseFloat(document.getElementById("target-budget").value);
+                console.log(targetBudget);
+                
+                if (totalCost > targetBudget) {
+                    resultDiv.style.color = 'red';
+                    resultDiv.innerHTML += ` You are exceeding your target budget!`;
+                    //table here
+                } else {
+                    resultDiv.style.color = 'green';
+                    resultDiv.innerHTML += ` You are on your target budget!`;
+                }
+                form.reset();
+            });
+
+        function updateTotal() {
+            // Get the total energy cost from the table
+            let total = 0;
+            const rows = applianceTableBody.rows;
+            for (let i = 0; i < rows.length; i++) {
+                const costCell = rows[i].cells[3];
+                total += parseFloat(costCell.innerHTML);
+            }
+
+            // Update the total result div
+            totalResultDiv.innerHTML = `Total Energy Cost: ${total.toFixed(2)}`;
+            totalResultDiv.setAttribute('data-total', total);
+        }
+
+        </script>
+    </body>
+</html>
