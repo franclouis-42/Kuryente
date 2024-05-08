@@ -10,6 +10,67 @@
             body {
                 font-family: Arial, sans-serif;
             }
+
+            #navbar {
+                overflow: hidden;
+                background-color: #333;
+            }
+
+            #navbar h1 {
+                float: left;
+                display: block;
+                color: #f2f2f2;
+                text-align: center;
+                padding: 14px 16px;
+                text-decoration: none;
+                font-size: 17px;
+            }
+
+            .content {
+                padding: 10px;
+            }
+
+            .sticky {
+                position: fixed;
+                top: 0;
+                width: 100%;
+            }
+
+            .sticky + .content {
+                padding-top: 60px;
+            }
+
+            .sidebar {
+                height: 100%;
+                width: 0;
+                position: fixed;
+                z-index: 1;
+                top: 0;
+                right: 0;
+                background-color: #e7e2e2a9;
+                overflow-x: hidden;
+                transition: 0.5s;
+                padding-top: 60px;
+                padding-left: 10px;
+            }
+
+            .sidebar .closebtn {
+                position: absolute;
+                top: 0;
+                left: -45px;
+                font-size: 36px;
+                margin-left: 50px;
+                color: black;
+            }
+
+            .openbtn {
+                position: fixed;
+                right: 2%;
+                top: 3%;
+                width: 3;
+                height: 5%;
+            }
+
             form {
                 max-width: 400px;
                 margin: 40px auto;
@@ -52,77 +113,94 @@
                 background-color: #f2f2f2;
                 font-weight: bold;
             }
+
+            #main {
+                transition: margin-right .5s;
+                /* padding: 2px; */
+            }
         </style>
     </head>
     <body>
-        <form id="energy-form">
-            <h2>Energy Calculator</h2>
-            <label for="target-budget">Target Budget (Php):</label>
-            <input type="number" id="target-budget" name="target-budget" required>
+        <div id="navbar">
+            <h1>Power Smart Advisor</h1>
+            <button class="openbtn" onclick="openNav()">☰ </button>
+        </div>
 
-            <label for="appliance">Select Appliance:</label>
-            <select id="appliance" name="appliance" required>
-                <option value="">Select an appliance</option>
-                <optgroup label="Lighting/Ventilation">
-                    <option value="Air Conditioning" data-wattage="3000">Air Conditioning</option>
-                    <option value="Electric Fan" data-wattage="3.6">Electric Fan</option>
-                    <option value="Light Bulb" data-wattage="4.5">Light Bulb</option>
-                </optgroup>
-                <optgroup label="Cleaning">
-                    <option value="Dishwasher" data-wattage="1200">Dishwasher</option>
-                    <option value="Iron:1100" data-wattage="1100">Iron</option>
-                    <option value="Washer" data-wattage="500">Washer</option>
-                    <option value="Dryer" data-wattage="1500">Dryer</option>
-                    <option value="Vacuum Cleaner" data-wattage="1000">Vacuum Cleaner</option>
-                </optgroup>
-                <optgroup label="Cooking">
-                    <option value="Induction Stove" data-wattage="1500">Induction Stove</option>
-                    <option value="Electric Stove" data-wattage="1000">Electric Stove</option>
-                    <option value="Kettle" data-wattage="1500">Kettle</option>
-                    <option value="Coffee Maker" data-wattage="1500">Coffee Maker</option>
-                    <option value="Heater" data-wattage="1500">Heater</option>
-                    <option value="Refrigerator" data-wattage="300">Refrigerator</option>
-                    <option value="Blender" data-wattage="500">Blender</option>
-                    <option value="Oven" data-wattage="900">Oven</option>
-                    <option value="Toaster" data-wattage="1100">Toaster</option>
-                    <option value="Microwave" data-wattage="600">Microwave</option>
-                </optgroup>
-                <optgroup label="Entertainment">
-                    <option value="Television" data-wattage="50">Television</option>
-                    <option value="Computer" data-wattage="30">Computer</option>
-                    <option value="Gadgets Chargers" data-wattage="51">Gadgets Chargers</option>
-                </optgroup>
-                <optgroup label="Others">
-                    <option>Other</option>
-                </optgroup>
-            </select>
+        <div id="sidebar" class="sidebar">
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla tincidunt velit quis mauris rutrum, in hendrerit nulla molestie. Donec nec condimentum magna, ut bibendum neque. Proin consequat sapien nec diam euismod, non molestie quam consectetur. Donec eu sapien a sapien aliquet porta ac nec ipsum. Duis velit lacus, rutrum sit amet sollicitudin id, lacinia eu ipsum. Nullam molestie, enim sed tristique luctus, felis urna ullamcorper tellus, nec imperdiet erat augue et nulla. Sed ullamcorper lacinia vestibulum. Nulla et lorem fermentum neque consectetur eleifend at a erat. Proin condimentum urna ut hendrerit fringilla. Integer id nulla vitae nulla ullamcorper aliquet. Donec pulvinar libero vitae semper imperdiet. Quisque id felis vel orci volutpat feugiat id sit amet tellus. Curabitur lobortis lectus arcu.
+            </p>
+        </div>
+        <div class="content" id="main">
+            <form id="energy-form">
+                <h2>Energy Calculator</h2>
+                <label for="target-budget">Target Budget (Php):</label>
+                <input type="number" id="target-budget" name="target-budget" required>
 
-            <label for="wattage">Wattage (watts):</label>
-            <input type="float" id="wattage" name="wattage" required>
+                <label for="appliance">Select Appliance:</label>
+                <select id="appliance" name="appliance" required>
+                    <option value="">Select an appliance</option>
+                    <optgroup label="Lighting/Ventilation">
+                        <option value="Air Conditioning" data-wattage="3000">Air Conditioning</option>
+                        <option value="Electric Fan" data-wattage="3.6">Electric Fan</option>
+                        <option value="Light Bulb" data-wattage="4.5">Light Bulb</option>
+                    </optgroup>
+                    <optgroup label="Cleaning">
+                        <option value="Dishwasher" data-wattage="1200">Dishwasher</option>
+                        <option value="Iron:1100" data-wattage="1100">Iron</option>
+                        <option value="Washer" data-wattage="500">Washer</option>
+                        <option value="Dryer" data-wattage="1500">Dryer</option>
+                        <option value="Vacuum Cleaner" data-wattage="1000">Vacuum Cleaner</option>
+                    </optgroup>
+                    <optgroup label="Cooking">
+                        <option value="Induction Stove" data-wattage="1500">Induction Stove</option>
+                        <option value="Electric Stove" data-wattage="1000">Electric Stove</option>
+                        <option value="Kettle" data-wattage="1500">Kettle</option>
+                        <option value="Coffee Maker" data-wattage="1500">Coffee Maker</option>
+                        <option value="Heater" data-wattage="1500">Heater</option>
+                        <option value="Refrigerator" data-wattage="300">Refrigerator</option>
+                        <option value="Blender" data-wattage="500">Blender</option>
+                        <option value="Oven" data-wattage="900">Oven</option>
+                        <option value="Toaster" data-wattage="1100">Toaster</option>
+                        <option value="Microwave" data-wattage="600">Microwave</option>
+                    </optgroup>
+                    <optgroup label="Entertainment">
+                        <option value="Television" data-wattage="50">Television</option>
+                        <option value="Computer" data-wattage="30">Computer</option>
+                        <option value="Gadgets Chargers" data-wattage="51">Gadgets Chargers</option>
+                    </optgroup>
+                    <optgroup label="Others">
+                        <option>Other</option>
+                    </optgroup>
+                </select>
 
-            <label for="hours-used">Hours Used:</label>
-            <input type="float" id="hours-used" name="hours-used" required>
+                <label for="wattage">Wattage (watts):</label>
+                <input type="float" id="wattage" name="wattage" required>
 
-            <button type="submit">Add Appliance</button>
-        </form>
+                <label for="hours-used">Hours Used:</label>
+                <input type="float" id="hours-used" name="hours-used" required>
 
-        <table id="appliance-table">
-            <thead>
-                <tr>
-                    <th>Appliance</th>
-                    <th>Wattage</th>
-                    <th>Hours Used</th>
-                    <th>Cost (Php)</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        <button id="calculate-button">Calculate</button>
-        <div id="suggestion"></div>
-        <div id="result"></div>
-        <div id="total-result"></div>
+                <button type="submit">Add Appliance</button>
+            </form>
 
+            <table id="appliance-table">
+                <thead>
+                    <tr>
+                        <th>Appliance</th>
+                        <th>Wattage</th>
+                        <th>Hours Used</th>
+                        <th>Cost (Php)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <button id="calculate-button">Calculate</button>
+            <div id="suggestion"></div>
+            <div id="result"></div>
+            <div id="total-result"></div>
+        </div>
         <script>
             const form = document.getElementById('energy-form');
             const resultDiv = document.getElementById('result');
@@ -134,6 +212,29 @@
             const suggestionDiv = document.getElementById('suggestion');
             const targetBudget = document.getElementById('target-budget').value;
             console.log(targetBudget);  
+
+            window.onscroll = function() {myFunction()};
+
+            var navbar = document.getElementById("navbar");
+            var sticky = navbar.offsetTop;
+
+            function myFunction() {
+                if (window.pageYOffset >= sticky) {
+                    navbar.classList.add("sticky")
+                } else {
+                    navbar.classList.remove("sticky");
+                }
+            }
+
+            function openNav() {
+                document.getElementById("sidebar").style.width = "250px";
+                document.getElementById("main").style.marginRight = "250px";
+            }
+
+            function closeNav() {
+                document.getElementById("sidebar").style.width = "0";
+                document.getElementById("main").style.marginRight= "0";
+            }
 
             applianceSelect.addEventListener('change', (e) => {
                 const selectedAppliance = applianceSelect.value;
