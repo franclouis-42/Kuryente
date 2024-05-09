@@ -114,6 +114,12 @@
                 font-weight: bold;
             }
 
+            /* #result {
+                height: auto;
+                width: auto;
+                display: contents;
+            } */
+
             #main {
                 transition: margin-right .5s;
                 /* padding: 2px; */
@@ -142,33 +148,33 @@
                 <select id="appliance" name="appliance" required>
                     <option value="">Select an appliance</option>
                     <optgroup label="Lighting/Ventilation">
-                        <option value="Air Conditioning" data-wattage="3000">Air Conditioning</option>
-                        <option value="Electric Fan" data-wattage="3.6">Electric Fan</option>
-                        <option value="Light Bulb" data-wattage="4.5">Light Bulb</option>
+                        <option value="Air Conditioning" data-wattage="3000" data-prio="0.25">Air Conditioning</option>
+                        <option value="Electric Fan" data-wattage="3.6" data-prio="0.8">Electric Fan</option>
+                        <option value="Light Bulb" data-wattage="4.5" data-prio="0.9">Light Bulb</option>
                     </optgroup>
                     <optgroup label="Cleaning">
-                        <option value="Dishwasher" data-wattage="1200">Dishwasher</option>
-                        <option value="Iron:1100" data-wattage="1100">Iron</option>
-                        <option value="Washer" data-wattage="500">Washer</option>
-                        <option value="Dryer" data-wattage="1500">Dryer</option>
-                        <option value="Vacuum Cleaner" data-wattage="1000">Vacuum Cleaner</option>
+                        <option value="Dishwasher" data-wattage="1200" data-prio="0.3">Dishwasher</option>
+                        <option value="Iron:1100" data-wattage="1100" data-prio="0.60">Iron</option>
+                        <option value="Washer" data-wattage="500" data-prio="0.55">Washer</option>
+                        <option value="Dryer" data-wattage="1500" data-prio="0.5">Dryer</option>
+                        <option value="Vacuum Cleaner" data-wattage="1000" data-prio="0.45">Vacuum Cleaner</option>
                     </optgroup>
                     <optgroup label="Cooking">
-                        <option value="Induction Stove" data-wattage="1500">Induction Stove</option>
-                        <option value="Electric Stove" data-wattage="1000">Electric Stove</option>
-                        <option value="Kettle" data-wattage="1500">Kettle</option>
-                        <option value="Coffee Maker" data-wattage="1500">Coffee Maker</option>
-                        <option value="Heater" data-wattage="1500">Heater</option>
-                        <option value="Refrigerator" data-wattage="300">Refrigerator</option>
-                        <option value="Blender" data-wattage="500">Blender</option>
-                        <option value="Oven" data-wattage="900">Oven</option>
-                        <option value="Toaster" data-wattage="1100">Toaster</option>
-                        <option value="Microwave" data-wattage="600">Microwave</option>
+                        <option value="Induction Stove" data-wattage="1500" data-prio="0.75">Induction Stove</option>
+                        <option value="Electric Stove" data-wattage="1000" data-prio="0.7">Electric Stove</option>
+                        <option value="Kettle" data-wattage="1500" data-prio="0.69">Kettle</option>
+                        <option value="Coffee Maker" data-wattage="1500" data-prio="0.4">Coffee Maker</option>
+                        <option value="Heater" data-wattage="1500" data-prio="0.2">Heater</option>
+                        <option value="Refrigerator" data-wattage="300" data-prio="1">Refrigerator</option>
+                        <option value="Blender" data-wattage="500" data-prio="0.68">Blender</option>
+                        <option value="Oven" data-wattage="900" data-prio="0.67">Oven</option>
+                        <option value="Toaster" data-wattage="1100" data-prio="0.66">Toaster</option>
+                        <option value="Microwave" data-wattage="600" data-prio="0.65">Microwave</option>
                     </optgroup>
                     <optgroup label="Entertainment">
-                        <option value="Television" data-wattage="50">Television</option>
-                        <option value="Computer" data-wattage="30">Computer</option>
-                        <option value="Gadgets Chargers" data-wattage="51">Gadgets Chargers</option>
+                        <option value="Television" data-wattage="50" data-prio="0.15">Television</option>
+                        <option value="Computer" data-wattage="30" data-prio="0.1">Computer</option>
+                        <option value="Gadgets Chargers" data-wattage="51" data-prio="0.06">Gadgets Chargers</option>
                     </optgroup>
                     <optgroup label="Others">
                         <option>Other</option>
@@ -198,7 +204,19 @@
             </table>
             <button id="calculate-button">Calculate</button>
             <div id="suggestion"></div>
-            <div id="result"></div>
+            <div id="result">
+                <table id="suggest-table" style="visibility: hidden;">
+                    <thead>
+                        <tr>
+                            <th>Appliance</th>
+                            <th>Wattage</th>
+                            <th>Hours Used</th>
+                            <th>Cost (Php)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
             <div id="total-result"></div>
         </div>
         <script>
@@ -208,6 +226,8 @@
             const wattageInput = document.getElementById('wattage');
             const applianceTable = document.getElementById('appliance-table');
             const applianceTableBody = applianceTable.getElementsByTagName('tbody')[0] || applianceTable.appendChild(document.createElement('tbody'));
+            const suggestTable = document.getElementById('suggest-table');
+            const suggestTableBody = suggestTable.getElementsByTagName('tbody')[0] || applianceTable.appendChild(document.createElement('tbody'));
             const calculateButton = document.getElementById('calculate-button');
             const suggestionDiv = document.getElementById('suggestion');
             const targetBudget = document.getElementById('target-budget').value;
@@ -280,6 +300,17 @@
                 const editButtons = createEditButtons(newRow);
                 actionsCell.appendChild(editButtons);
 
+                // const suggestRow = suggestTableBody.insertRow();
+                // const suggestApplianceCell = suggestRow.insertCell();
+                // const suggestWattageCell = suggestRow.insertCell();
+                // const suggestHoursUsedCell = suggestRow.insertCell();
+                // const suggestCostCell = suggestRow.insertCell();
+
+                // suggestApplianceCell.innerHTML = appliance;
+                // suggestWattageCell.innerHTML = wattage;
+                // suggestHoursUsedCell.innerHTML = hoursUsed;
+                //suggestCostCell.innerHTML = 
+
                 // Reset the form
                 // form.reset();
                 document.getElementById("hours-used").value = "";
@@ -335,6 +366,15 @@
                         applianceCell.innerHTML = applianceInput.value;
                         wattageCell.innerHTML = wattageInput.value;
                         hoursUsedCell.innerHTML = hoursUsedInput.value;
+                        
+                        // const suggestRow = suggestTableBody.insertRow();
+                        // const suggestApplianceCell = suggestRow.insertCell();
+                        // const suggestWattageCell = suggestRow.insertCell();
+                        // const suggestHoursUsedCell = suggestRow.insertCell();
+                        // const suggestCostCell = suggestRow.insertCell();
+                        // suggestApplianceCell.innerHTML = applianceInput.value;
+                        // suggestWattageCell.innerHTML = wattageInput.value;
+                        // suggestHoursUsedCell.innerHTML = hoursUsedInput.value;
 
                         const newEnergyCost = calculateEnergyCost(wattageInput.value, hoursUsedInput.value);
                         costCell.innerHTML = newEnergyCost.toFixed(2);
@@ -390,16 +430,6 @@
         }
 
         calculateButton.addEventListener('click', () => {
-                // const targetBudget = parseFloat(document.getElementById('target-budget').value);
-                // const totalCost = parseFloat(document.querySelector('#appliance-table tbody tr').lastElementChild.textContent);
-
-                // if (totalCost > targetBudget) {
-                //     suggestionDiv.textContent = `You are exceeding your target budget by ${(totalCost - targetBudget).toFixed(2)} Php. Consider reducing the usage of some appliances or upgrading to more energy-efficient models.`;
-                //     suggestionDiv.style.color = 'red';
-                // } else {
-                //     suggestionDiv.textContent = `You are within your target budget. Keep up the good work!`;
-                //     suggestionDiv.style.color = 'green';
-                // }
                 let totalCost = 0;
                 const rows = applianceTableBody.rows;
                 for (let i = 0; i < rows.length; i++) {
@@ -413,11 +443,70 @@
                 if (totalCost > targetBudget) {
                     resultDiv.style.color = 'red';
                     resultDiv.innerHTML += ` You are exceeding your target budget!`;
-                    //table here
+
+                    if (document.getElementById('suggest-table').style.visibility = 'hidden') {
+                        // element.removeAttribute('hidden');
+                        document.getElementById('suggest-table').style.visibility = 'visible';
+                        console.log("show");
+                    }
+                    else {
+                        document.getElementById('suggest-table').style.visibility = 'hidden';
+                        console.log("hide");
+                    } 
+
                 } else {
                     resultDiv.style.color = 'green';
                     resultDiv.innerHTML += ` You are on your target budget!`;
                 }
+
+                const suggestRow = suggestTableBody.insertRow();
+                const suggestApplianceCell = suggestRow.insertCell();
+                const suggestWattageCell = suggestRow.insertCell();
+                const suggestHoursUsedCell = suggestRow.insertCell();
+                const suggestCostCell = suggestRow.insertCell();
+
+                // suggestApplianceCell.innerHTML = appliance;
+                // suggestWattageCell.innerHTML = wattage;
+                // suggestHoursUsedCell.innerHTML = hoursUsed;
+
+                // Get the appliance table and its rows
+                const applianceTable = document.getElementById('appliance-table');
+                const applianceTableRows = applianceTable.getElementsByTagName('tr');
+
+                // Loop through each row in the appliance table
+                for (let i = 0; i < applianceTableRows.length; i++) {
+                    const row = applianceTableRows[i];
+                    console.log("wow");
+
+                    // Get the cells in the row
+                    const applianceCell = row.cells[0];
+                    const wattageCell = row.cells[1];
+                    const hoursUsedCell = row.cells[2];
+
+                    // Get the values of the cells
+                    const appliance = applianceCell.innerText;
+                    const wattage = wattageCell.innerText;
+                    const hoursUsed = hoursUsedCell.innerText;
+                    console.log(appliance);
+                    console.log(wattage);
+                    console.log(hoursUsed);
+
+
+                    // Create a new row in the suggestion table
+                    const suggestRow = suggestTable.insertRow();
+
+                    // Create cells in the new row and insert the values
+                    const suggestApplianceCell = suggestRow.insertCell();
+                    suggestApplianceCell.innerText = appliance;
+
+                    const suggestWattageCell = suggestRow.insertCell();
+                    suggestWattageCell.innerText = wattage;
+
+                    const suggestHoursUsedCell = suggestRow.insertCell();
+                    suggestHoursUsedCell.innerText = hoursUsed;
+                    console.log("wee");
+                }
+
                 form.reset();
             });
 
