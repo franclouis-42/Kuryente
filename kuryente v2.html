@@ -49,9 +49,10 @@
                 right: 0;
                 background-color: #e7e2e2a9;
                 overflow-x: hidden;
+                overflow-y: hidden;
                 transition: 0.5s;
                 padding-top: 60px;
-                padding-left: 10px;
+                padding-left: 0px;
             }
 
             .sidebar .closebtn {
@@ -100,6 +101,7 @@
             button[type="submit"]:hover {
                 background-color: #3e8e41;
             }
+
             table {
             width: 100%;
             border-collapse: collapse;
@@ -154,7 +156,7 @@
                     </optgroup>
                     <optgroup label="Cleaning">
                         <option value="Dishwasher" data-wattage="1200" data-prio="0.3">Dishwasher</option>
-                        <option value="Iron:1100" data-wattage="1100" data-prio="0.60">Iron</option>
+                        <option value="Iron" data-wattage="1100" data-prio="0.60">Iron</option>
                         <option value="Washer" data-wattage="500" data-prio="0.55">Washer</option>
                         <option value="Dryer" data-wattage="1500" data-prio="0.5">Dryer</option>
                         <option value="Vacuum Cleaner" data-wattage="1000" data-prio="0.45">Vacuum Cleaner</option>
@@ -224,14 +226,17 @@
             const resultDiv = document.getElementById('result');
             const applianceSelect = document.getElementById('appliance');
             const wattageInput = document.getElementById('wattage');
+            const hoursInput = document.getElementById('hours-used').value;
             const applianceTable = document.getElementById('appliance-table');
             const applianceTableBody = applianceTable.getElementsByTagName('tbody')[0] || applianceTable.appendChild(document.createElement('tbody'));
             const suggestTable = document.getElementById('suggest-table');
             const suggestTableBody = suggestTable.getElementsByTagName('tbody')[0] || applianceTable.appendChild(document.createElement('tbody'));
             const calculateButton = document.getElementById('calculate-button');
             const suggestionDiv = document.getElementById('suggestion');
-            const targetBudget = document.getElementById('target-budget').value;
-            console.log(targetBudget);  
+            const targetBudget = document.getElementById('target-budget').value; 
+            var prioDict = {};
+            const indivCost = {};
+            const indivHour = {};
 
             window.onscroll = function() {myFunction()};
 
@@ -268,21 +273,10 @@
                 // const targetBudget = document.getElementById('target-budget').value;
                 const appliance = applianceSelect.value;
                 const wattage = wattageInput.value;
-                const hoursUsed = document.getElementById('hours-used').value;
+                const hoursUsed = parseFloat(document.getElementById('hours-used').value);
 
                 // Calculate energy cost based on the inputs
                 const energyCost = calculateEnergyCost(wattage, hoursUsed);
-
-                // Display the result
-                // resultDiv.innerHTML = `Your ${appliance} uses ${energyCost.toFixed(2)} units of energy per day. Your target budget is ${targetBudget}.`;
-
-                // // Add some basic validation
-                // if (energyCost > targetBudget) {
-                //     resultDiv.style.color = 'red';
-                //     resultDiv.innerHTML += ` You are exceeding your target budget!`;
-                // } else {
-                //     resultDiv.style.color = 'green';
-                // }
 
                 // Add the appliance to the table
                 const newRow = applianceTableBody.insertRow();
@@ -300,30 +294,46 @@
                 const editButtons = createEditButtons(newRow);
                 actionsCell.appendChild(editButtons);
 
-                // const suggestRow = suggestTableBody.insertRow();
-                // const suggestApplianceCell = suggestRow.insertCell();
-                // const suggestWattageCell = suggestRow.insertCell();
-                // const suggestHoursUsedCell = suggestRow.insertCell();
-                // const suggestCostCell = suggestRow.insertCell();
-
-                // suggestApplianceCell.innerHTML = appliance;
-                // suggestWattageCell.innerHTML = wattage;
-                // suggestHoursUsedCell.innerHTML = hoursUsed;
-                //suggestCostCell.innerHTML = 
-
-                // Reset the form
-                // form.reset();
                 document.getElementById("hours-used").value = "";
 
-
-                // Focus on the target budget input
                 document.getElementById('target-budget').focus();
+
+                var select = document.getElementById("appliance");
+                var selected = select.options[select.selectedIndex];
+                var name = selected.text;
+                var attribute = parseFloat(selected.getAttribute("data-prio"));
+
+                if (prioDict.hasOwnProperty(name)) {
+                    prioDict[name].push(attribute);
+                } else {
+                    prioDict[name] = attribute;
+                }
+
+                updateIndivCost(appliance, energyCost);
+                updateIndivHour(appliance, hoursUsed);
+                console.log(prioDict);
             });
 
             function calculateEnergyCost(wattage, hoursUsed) {
                 const energyCostPerHour = ((wattage * hoursUsed/1000)) * 11.9397; 
                 return energyCostPerHour;
             }   
+
+            function updateIndivCost(appliance, energyCost){
+                if (indivCost.hasOwnProperty(appliance)) {
+                    indivCost[appliance].push(energyCost.toFixed(2));
+                } else {
+                    indivCost[appliance] = [energyCost.toFixed(2)];
+                }
+            }
+            
+            function updateIndivHour(appliance, hoursUsed) {
+                if (indivHour.hasOwnProperty(appliance)) {
+                    indivHour[appliance].push(hoursUsed);
+                } else {
+                    indivHour[appliance] = [hoursUsed];
+                }
+            }
 
             function createEditButtons(row) {
                 const editButtons = document.createElement('div');
@@ -358,6 +368,37 @@
                     const costCell = row.cells[3];
                     costCell.innerHTML = '';
 
+                    function handleEdit(row) {
+                        const applianceCell = row.cells[0];
+                        const appliance = applianceCell.textContent.trim();
+                        console.log(appliance);
+                        const wattageCell = row.cells[1];
+                        const wattage = parseFloat(wattageCell.textContent.trim());
+                        console.log(wattage);
+                        const hoursUsedCell = row.cells[2];
+                        const hoursUsed = parseFloat(hoursUsedCell.textContent.trim());
+                        console.log(hoursUsed);
+
+                        // Update individual hours for the edited appliance
+                        if (indivHour.hasOwnProperty(appliance)) {
+                            indivHour[appliance].pop(); // Remove the old hours
+                            indivHour[appliance].push(hoursUsed); // Add or update with the new hours
+                        } else {
+                            console.log("Appliance not found in individual hours dictionary.");
+                        }
+
+                        // Update individual costs for the edited appliance
+                        const energyCost = calculateEnergyCost(wattage, hoursUsed);
+                        if (indivCost.hasOwnProperty(appliance)) {
+                            indivCost[appliance].pop(); // Remove the old cost
+                            indivCost[appliance].push(energyCost); // Add or update with the new cost
+                        } else {
+                            console.log("Appliance not found in individual costs dictionary.");
+                        }
+                    }
+
+                    handleEdit(row);
+
                     const saveButton = document.createElement('button');
                     saveButton.innerHTML = 'Save';
                     saveButton.addEventListener('click', () => {
@@ -367,17 +408,10 @@
                         wattageCell.innerHTML = wattageInput.value;
                         hoursUsedCell.innerHTML = hoursUsedInput.value;
                         
-                        // const suggestRow = suggestTableBody.insertRow();
-                        // const suggestApplianceCell = suggestRow.insertCell();
-                        // const suggestWattageCell = suggestRow.insertCell();
-                        // const suggestHoursUsedCell = suggestRow.insertCell();
-                        // const suggestCostCell = suggestRow.insertCell();
-                        // suggestApplianceCell.innerHTML = applianceInput.value;
-                        // suggestWattageCell.innerHTML = wattageInput.value;
-                        // suggestHoursUsedCell.innerHTML = hoursUsedInput.value;
-
                         const newEnergyCost = calculateEnergyCost(wattageInput.value, hoursUsedInput.value);
                         costCell.innerHTML = newEnergyCost.toFixed(2);
+
+                        handleEdit(row);
 
                         editButtons.style.display = 'flex';
                         saveButton.style.display = 'none';
@@ -402,6 +436,8 @@
                     editButtons.style.display = 'none';
                     costCell.appendChild(saveButton);
                     costCell.appendChild(cancelButton);
+                    
+                    // handleEdit(row);
                 });
 
                 const deleteButton = document.createElement('button');
@@ -430,85 +466,164 @@
         }
 
         calculateButton.addEventListener('click', () => {
-                let totalCost = 0;
-                const rows = applianceTableBody.rows;
-                for (let i = 0; i < rows.length; i++) {
-                    const costCell = rows[i].cells[3];
-                    totalCost += parseFloat(costCell.innerHTML);
-                }
-                suggestionDiv.innerHTML = `Total Energy Cost: ${totalCost.toFixed(2)}`;
-                var targetBudget = parseFloat(document.getElementById("target-budget").value);
-                console.log(targetBudget);
-                
-                if (totalCost > targetBudget) {
-                    resultDiv.style.color = 'red';
-                    resultDiv.innerHTML += ` You are exceeding your target budget!`;
 
-                    if (document.getElementById('suggest-table').style.visibility = 'hidden') {
-                        // element.removeAttribute('hidden');
-                        document.getElementById('suggest-table').style.visibility = 'visible';
-                        console.log("show");
+            let totalCost = 0;
+            const rows = applianceTableBody.rows;
+            for (let i = 0; i < rows.length; i++) {
+                const costCell = rows[i].cells[3];
+                totalCost += parseFloat(costCell.innerHTML);
+            }
+            suggestionDiv.innerHTML = `Total Energy Cost: ${totalCost.toFixed(2)}`;
+            var targetBudget = parseFloat(document.getElementById("target-budget").value);
+            console.log(targetBudget);
+            
+            if (totalCost > targetBudget) {
+                resultDiv.style.color = 'red';
+                resultDiv.innerHTML += ` You are exceeding your target budget!`;
+
+                if (document.getElementById('suggest-table').style.visibility = 'hidden') {
+                    // element.removeAttribute('hidden');
+                    document.getElementById('suggest-table').style.visibility = 'visible';
+                    console.log("show");
+                }
+                else {
+                    document.getElementById('suggest-table').style.visibility = 'hidden';
+                    console.log("hide");
+                } 
+
+            } else {
+                resultDiv.style.color = 'green';
+                resultDiv.innerHTML += ` You are on your target budget!`;
+            }
+
+            const suggestRow = suggestTableBody.insertRow();
+            const suggestApplianceCell = suggestRow.insertCell();
+            const suggestWattageCell = suggestRow.insertCell();
+            const suggestHoursUsedCell = suggestRow.insertCell();
+            const suggestCostCell = suggestRow.insertCell();
+
+            // Get the appliance table and its rows
+            const applianceTable = document.getElementById('appliance-table');
+            const applianceTableRows = applianceTable.getElementsByTagName('tr');
+
+            var sourceTable = document.getElementById("appliance-table");
+            var destinationTable = document.getElementById('suggest-table');
+            destinationTable.innerHTML = '';
+
+            // Iterate through each row of the source table
+            for (var i = 0; i < sourceTable.rows.length; i++) {
+                var newRow = destinationTable.insertRow(); // Create a new row in destination table
+
+                // Iterate through each cell in the row excluding the last column
+                for (var j = 0; j < sourceTable.rows[i].cells.length - 1; j++) {
+                    // Check if it's the third or fourth column
+                    if (j === 2 || j === 3) {
+                        // Copy only the first row of the third and fourth columns
+                        var newCell = newRow.insertCell();
+                        newCell.innerHTML = i === 0 ? sourceTable.rows[i].cells[j].innerHTML : '';
+                    } else {
+                        // Copy all other columns
+                        var newCell = newRow.insertCell();
+                        newCell.innerHTML = sourceTable.rows[i].cells[j].innerHTML;
                     }
-                    else {
-                        document.getElementById('suggest-table').style.visibility = 'hidden';
-                        console.log("hide");
-                    } 
+                }
+            }
+            
+            function calculateEnergyCostForAppliance(applianceName) {
+                var wattage = document.querySelector('option[value="' + applianceName + '"]').getAttribute('data-wattage');
+                var hoursUsed = parseFloat(document.getElementById('hours-used').value); // fix this part kasi hindi nareread
+                console.log(hoursInput);
+                console.log("wattage is", wattage);
+                console.log("hours is", hoursUsed);
+                return calculateEnergyCost(wattage, hoursUsed);
+            }
 
+            function scanTable(){
+                var table = document.getElementById('suggest-table');
+                var rows = table.getElementsByTagName('tr');
+                var lowestPrio = Infinity;
+
+                for (var i = 1; i < rows.length; i++) {
+                    var cells = rows[i].getElementsByTagName('td')[0];
+                    var cellContent = cells.textContent.trim();
+                    console.log("C.content is", cellContent);
+                    
+                    if (prioDict.hasOwnProperty(cellContent)) {
+                        var value = prioDict[cellContent];
+                        console.log(value);
+                        if (value < lowestPrio) {
+                            lowestPrio = value;
+                        }
+                    }
+                }
+                
+
+                if (lowestPrio === Infinity) {
+                    console.log("No appliances found in prioDict.");
                 } else {
-                    resultDiv.style.color = 'green';
-                    resultDiv.innerHTML += ` You are on your target budget!`;
+                    console.log("The lowest priority value is:", lowestPrio);
+
+                    var keysWithLowestPriority = Object.keys(prioDict).filter(function(key) {
+                        return prioDict[key] === lowestPrio;
+                    });
+                    
+                    console.log("Keys with the same priority as lowestPriority:", keysWithLowestPriority);
+                    
+                    var individualCost = [];
+                    keysWithLowestPriority.forEach(function(key){
+                        if (indivCost.hasOwnProperty(key)) {
+                            individualCost.push(indivCost[key]);
+                        }
+                    });
+                    
+                    console.log("Indicidual costs corresponding to the keys with the lowerst priority:", individualCost);
+
+                    var remainingCost = [];
+                    for (var key in indivCost) {
+                        if (!keysWithLowestPriority.includes(key)) {
+                            remainingCost = remainingCost.concat(indivCost[key]);   
+                        }
+                    }
+
+                    sumOfRemainingCosts = remainingCost.reduce(function(acc, val){
+                        return acc + parseFloat(val);
+                    }, 0);
+
+                    console.log("Sum of remaining costs:", sumOfRemainingCosts);
+
+                    var targetBudget = parseFloat(document.getElementById("target-budget").value);
+                    console.log("Target Budget:", targetBudget);
+
+                    if (sumOfRemainingCosts > targetBudget){
+                        console.log("magipon");
+                        var maxHoursAllowed = (targetBudget - sumOfRemainingCosts) / calculateEnergyCostForAppliance(keysWithLowestPriority[0]);
+                        console.log("Maximum allowable hours for the lowest priority appliance:", maxHoursAllowed);
+
+                        var hoursUsedCell = document.getElementById('hours-used');
+                        hoursUsedCell.value = maxHoursAllowed.toFixed(2);
+                    } else {
+                        console.log("nice one");
+                    }
                 }
 
-                const suggestRow = suggestTableBody.insertRow();
-                const suggestApplianceCell = suggestRow.insertCell();
-                const suggestWattageCell = suggestRow.insertCell();
-                const suggestHoursUsedCell = suggestRow.insertCell();
-                const suggestCostCell = suggestRow.insertCell();
-
-                // suggestApplianceCell.innerHTML = appliance;
-                // suggestWattageCell.innerHTML = wattage;
-                // suggestHoursUsedCell.innerHTML = hoursUsed;
-
-                // Get the appliance table and its rows
-                const applianceTable = document.getElementById('appliance-table');
-                const applianceTableRows = applianceTable.getElementsByTagName('tr');
-
-                // Loop through each row in the appliance table
-                for (let i = 0; i < applianceTableRows.length; i++) {
-                    const row = applianceTableRows[i];
-                    console.log("wow");
-
-                    // Get the cells in the row
-                    const applianceCell = row.cells[0];
-                    const wattageCell = row.cells[1];
-                    const hoursUsedCell = row.cells[2];
-
-                    // Get the values of the cells
-                    const appliance = applianceCell.innerText;
-                    const wattage = wattageCell.innerText;
-                    const hoursUsed = hoursUsedCell.innerText;
-                    console.log(appliance);
-                    console.log(wattage);
-                    console.log(hoursUsed);
-
-
-                    // Create a new row in the suggestion table
-                    const suggestRow = suggestTable.insertRow();
-
-                    // Create cells in the new row and insert the values
-                    const suggestApplianceCell = suggestRow.insertCell();
-                    suggestApplianceCell.innerText = appliance;
-
-                    const suggestWattageCell = suggestRow.insertCell();
-                    suggestWattageCell.innerText = wattage;
-
-                    const suggestHoursUsedCell = suggestRow.insertCell();
-                    suggestHoursUsedCell.innerText = hoursUsed;
-                    console.log("wee");
+                for (var key in indivCost) {
+                    if (!keysWithLowestPriority.includes(key)) {
+                        var sum = indivCost[key].reduce(function(acc, val){
+                            return acc + parseFloat(val);
+                        }, 0);
+                        indivCost[key] = sum.toFixed(2);
+                    }
                 }
+            }
 
-                form.reset();
-            });
+            scanTable();
+
+            console.log("Individual Costs:", indivCost);
+            console.log("Individual Hours:", indivHour);
+
+            form.reset();
+        });
+
 
         function updateTotal() {
             // Get the total energy cost from the table
@@ -523,7 +638,6 @@
             totalResultDiv.innerHTML = `Total Energy Cost: ${total.toFixed(2)}`;
             totalResultDiv.setAttribute('data-total', total);
         }
-
         </script>
     </body>
 </html>
